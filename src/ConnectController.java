@@ -78,7 +78,8 @@ public class ConnectController implements Initializable {
 		Scene fileTableScene = new Scene(fileTableParent);
 
 		FileTableController controller = loader.getController();
-		controller.initData(user);
+		controller.initData(user, serverHN.getText(), serverPort.getText(), userName.getText(), userHN.getText(),
+				userPort.getText(), speedDropMenu.getSelectionModel().getSelectedItem().toString());
 
 		Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
 		window.setScene(fileTableScene);

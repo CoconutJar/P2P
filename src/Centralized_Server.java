@@ -3,7 +3,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -22,8 +21,6 @@ public class Centralized_Server {
 		try {
 			welcomeSocket = new ServerSocket(3158); // ServerPort
 			System.out.println("Server UP!");
-			InetAddress ip = InetAddress.getByName("localhost");
-			System.out.println(ip);
 		} catch (Exception e) {
 			System.err.println("ERROR: Server could not be started.");
 		}

@@ -73,7 +73,14 @@ public class FileTableController implements Initializable {
 	private User user;
 
 	// Data received from ConnectController
-	public void initData(User user) {
+	public void initData(User user, String serverHN, String serverPort, String userName, String userHN, String userPort,
+			String userSpeed) {
+		this.serverHN = serverHN;
+		this.serverPort = serverPort;
+		this.userName = userName;
+		this.userHN = userHN;
+		this.userPort = userPort;
+		this.userSpeed = userSpeed;
 
 		this.user = user;
 		// Set connection session attributes banner
