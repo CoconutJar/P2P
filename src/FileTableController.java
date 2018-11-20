@@ -74,7 +74,7 @@ public class FileTableController implements Initializable {
 
 	// Data received from ConnectController
 	public void initData(User user, String serverHN, String serverPort, String userName, String userHN, String userPort,
-			String userSpeed) {
+						 String userSpeed) {
 		this.serverHN = serverHN;
 		this.serverPort = serverPort;
 		this.userName = userName;
@@ -133,7 +133,7 @@ public class FileTableController implements Initializable {
 		mi12.setOnAction((ActionEvent event) -> {
 			FileObject item = serverFilesTableView.getSelectionModel().getSelectedItem();
 			System.out.println("Selected item: " + item.getFilename());
-			transferFile(item);
+			getFile();
 		});
 		ContextMenu menu2 = new ContextMenu();
 		menu2.getItems().add(mi12);
@@ -157,14 +157,16 @@ public class FileTableController implements Initializable {
 		return files;
 	}
 
-	// Returns ObservableList of all FileObject objects used to fill Server File
-	// Table
-	// CURRENTLY -> Fills ObservableList with hardcoded dummy data
-	// INTENDED -> Fill ObservableList with FileObjects gathered from "filelist.xml"
-	// received from server
+	// Returns ObservableList of all FileObject objects used to fill Server File Table
 	private ObservableList<FileObject> getServerFiles() {
-
+		// user.search();
 		ObservableList<FileObject> files = FXCollections.observableArrayList();
+		// files.add(new FileObject("testfile1.txt", "168.61.111.49", "T1", "Cool
+		// stuff"));
+		// files.add(new FileObject("testfile2.pdf", "148.61.415.49", "Ethernet", "Sweet
+		// stuff"));
+		// files.add(new FileObject("testfile1.docx", "152.61.112.49", "Fiber Optic",
+		// "Awesome stuff"));
 
 		return files;
 	}
@@ -189,44 +191,24 @@ public class FileTableController implements Initializable {
 
 	}
 
-	private void transferFile(FileObject item) {
-		System.out.println("Transfer file: " + item.getFilename());
-	}
-
+	// Prints connections session information in banner
 	private void sessionAttributes() {
 		connectToLabel.setText("Connected to " + serverHN + " on " + serverPort);
 		userLabel.setText("User: " + userName);
 		ipLabel.setText("IP: " + userHN);
 	}
 
-	// Called when a user clicks the GetFile button. Grabs the text from the search
-	// bar and looks for filesnames that match.
-	// If a file is downloaded add it to the localfiles view.
 	public void getFile() {
 		try {
 			System.out.println("Transfer file: Started");
-			if (user.retrieve(searchField.getText())) {
-				System.out.println("Transfer file: Finished");
-				myFilesTableView.getItems().add(new FileObject(searchField.getText(), "Add Description"));
-				myFilesTableView.refresh();
-			} else
-
-				// If the file wasnt downloaded an error occured.
-				System.out.println("Transfer file: Error");
+			user.retrieve(searchField.getText());
+			System.out.println("Transfer file: Finished");
 		} catch (IOException e) {
 
 			e.printStackTrace();
 		}
-
 	}
 
-	public void disconnectBtnAction() {
-		System.out.println("Disconnect");
-	}
-
-	// Called when a user clicks the searchServer button. Grabs the text from the
-	// search bar on the GUI to search file description for matches.
-	// The results from the search are uploaded to the serverFilesTableView.
 	public void searchServer() {
 		ObservableList<FileObject> files = FXCollections.observableArrayList();
 

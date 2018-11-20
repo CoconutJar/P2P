@@ -3,6 +3,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -21,6 +22,8 @@ public class Centralized_Server {
 		try {
 			welcomeSocket = new ServerSocket(3158); // ServerPort
 			System.out.println("Server UP!");
+			InetAddress ip = InetAddress.getByName("localhost");
+			System.out.println(ip);
 		} catch (Exception e) {
 			System.err.println("ERROR: Server could not be started.");
 		}
@@ -83,7 +86,7 @@ class ClientHandler implements Runnable {
 
 	/****
 	 * 
-	 * Sets up the ClientHandler object/
+	 * 
 	 * 
 	 ****/
 	public ClientHandler(Socket connectionSocket, BufferedReader dis, DataOutputStream dos) {
@@ -97,7 +100,7 @@ class ClientHandler implements Runnable {
 
 	/****
 	 * 
-	 * Allows multiple clients to interact with the server.
+	 * 
 	 * 
 	 ****/
 	@Override
@@ -105,7 +108,7 @@ class ClientHandler implements Runnable {
 
 		String connectionString;
 		String fileList;
-
+		String string = "";
 		int listSize;
 
 		try {
@@ -115,8 +118,8 @@ class ClientHandler implements Runnable {
 			is = new DataInputStream(connectionSocket.getInputStream());
 			connectionString = is.readUTF();
 
-			// Client sends a String filled with information about the client.
 			StringTokenizer tokens = new StringTokenizer(connectionString);
+
 			this.clientName = tokens.nextToken();
 			this.hostName = tokens.nextToken();
 			this.speed = tokens.nextToken();
@@ -124,33 +127,31 @@ class ClientHandler implements Runnable {
 
 			System.out.println(clientName + " has connected!");
 
-			// Reads in whether or not the client has files available for download.
 			fileList = is.readUTF();
 
-			// If the client has no files to offer the fileList will be '505'
+			System.out.println(fileList);
+
 			if (!fileList.equals("505")) {
 				tokens = new StringTokenizer(fileList);
 				String data = tokens.nextToken();
 
 				if (data.startsWith("200")) {
-
-					// Number of files the client has to offer.
 					data = tokens.nextToken();
 					listSize = Integer.parseInt(data);
+					System.out.println(data);
 
 					for (int i = 0; i < listSize; i++) {
 
-						// Read in the first String of file Information.
 						String fileInfo = is.readUTF();
-
+						System.out.println(fileInfo + " " + i);
 						tokens = new StringTokenizer(fileInfo);
 						String fileName = tokens.nextToken("$");
 						String fileDescription = tokens.nextToken();
-
-						// Creates a clientData object with the information about the file.
 						ClientData cd = new ClientData(this.clientName, this.hostName, this.port, fileName,
 								fileDescription, this.speed);
 						Centralized_Server.clientData.add(cd);
+						System.out.println(cd.fileName);
+
 					}
 				}
 			}
@@ -213,11 +214,6 @@ class ClientHandler implements Runnable {
 	}
 }
 
-/*******************************************************************************************
- * 
- * Handles the clients files that are available for download.
- * 
- ******************************************************************************************/
 class ClientData {
 
 	public String hostName;
@@ -227,11 +223,6 @@ class ClientData {
 	public String speed;
 	public int port;
 
-	/****
-	 * 
-	 * Holds all the information of the file.
-	 * 
-	 ****/
 	public ClientData(String hostUserName, String hn, int port, String fn, String fd, String sp) {
 		this.hostUserName = hostUserName;
 		this.hostName = hn;

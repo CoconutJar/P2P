@@ -74,7 +74,6 @@ public class ConnectController implements Initializable {
 		Parent fileTableParent = loader.load();
 
 		// Setup for window (stage) change.
-//        Parent fileTableParent = FXMLLoader.load(getClass().getResource("FileTable.fxml"));
 		Scene fileTableScene = new Scene(fileTableParent);
 
 		FileTableController controller = loader.getController();
