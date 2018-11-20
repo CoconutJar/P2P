@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileReader;
@@ -16,12 +17,14 @@ import java.util.StringTokenizer;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
 public class User {
 	private Socket s;
 	private DataOutputStream dos;
+	private DataInputStream is;
 	private BufferedReader dis;
 	private ArrayList<AvailableFile> availableFiles;
 	private String userName;
@@ -44,9 +47,11 @@ public class User {
 		this.connectionSpeed = connectionSpeed;
 
 		// Set up input and output stream to send and receive messages.
-		dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
+		is = new DataInputStream(s.getInputStream());
+
 		dos = new DataOutputStream(s.getOutputStream());
-		dos.writeBytes(userName + " " + localHost + " " + connectionSpeed + " " + localPort);
+
+		dos.writeUTF(userName + " " + localHost + " " + connectionSpeed + " " + localPort);
 
 		File fileList = new File("./filelist.xml");
 
@@ -56,14 +61,19 @@ public class User {
 
 				SAXReader reader = new SAXReader();
 				Document document = reader.read(fileList);
+				System.out.println("Root element :" + document.getRootElement().getName());
+
+				Element classElement = document.getRootElement();
+
 				List<Node> nodes = document.selectNodes("/filelist/file");
+
 				dos.writeUTF("200" + " " + nodes.size());
 
 				for (Node node : nodes) {
 
 					String fileName = node.selectSingleNode("name").getText();
 					String fileDescription = node.selectSingleNode("description").getText();
-					dos.writeBytes(fileName + "<DIV>" + fileDescription);
+					dos.writeUTF(fileName + "$" + fileDescription);
 
 				}
 			} catch (DocumentException e) {
@@ -81,20 +91,32 @@ public class User {
 			public void run() {
 				while (loggedOn) {
 					try {
-						ServerSocket localServer = new ServerSocket(User.localPort); // localServerPort
+						ServerSocket localServer = new ServerSocket(Integer.parseInt(localPort)); // localServerPort
 						Socket client = localServer.accept();
 						DataOutputStream out = new DataOutputStream(client.getOutputStream());
-						BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-						String targetFile = in.readLine();
-						BufferedReader contentRead = new BufferedReader(new FileReader(targetFile));
+						DataInputStream in = new DataInputStream(client.getInputStream());
+						String command = in.readUTF();
+						StringTokenizer tokens = new StringTokenizer(command);
 
-						PrintWriter pwrite = new PrintWriter(out, true);
+						String targetFile = tokens.nextToken();
+						targetFile = tokens.nextToken();
 
-						String str;
-						while ((str = contentRead.readLine()) != null) {
-							pwrite.println(str);
+						File file = new File("./" + targetFile);
+						System.out.println(targetFile);
+						if (file.exists()) {
+							out.writeUTF("200");
+							BufferedReader contentRead = new BufferedReader(new FileReader(targetFile));
+
+							PrintWriter pwrite = new PrintWriter(out, true);
+
+							String str;
+							while ((str = contentRead.readLine()) != null) {
+								pwrite.println(str);
+							}
+							contentRead.close();
+						} else {
+							out.writeUTF("505");
 						}
-						contentRead.close();
 						client.close();
 						localServer.close();
 
@@ -109,14 +131,17 @@ public class User {
 		localServer.start();
 	}
 
-	public void search(String keyword) {
+	public boolean search(String keyword) {
 		StringTokenizer tokens;
 
 		try {
 
 			dos.writeUTF(keyword);
 			String str = "";
-			str = dis.readLine();
+			System.out.println("rec");
+			str = is.readUTF();
+
+			availableFiles = new ArrayList<AvailableFile>();
 			while (!str.equals("EOF")) {
 
 				tokens = new StringTokenizer(str);
@@ -124,31 +149,45 @@ public class User {
 				String hostName = tokens.nextToken();
 				int hostPort = Integer.parseInt(tokens.nextToken());
 				String hostFileName = tokens.nextToken();
-				AvailableFile file = new AvailableFile(hostName, hostPort, hostFileName, hostSpeed);
+				String hostUserName = tokens.nextToken();
+				AvailableFile file = new AvailableFile(hostUserName, hostName, hostPort, hostFileName, hostSpeed);
 				availableFiles.add(file);
-				str = dis.readLine();
+				str = is.readUTF();
 
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
+		if (availableFiles.isEmpty())
+			return false;
+		else
+			return true;
+	}
+
+	public ArrayList<AvailableFile> getAvailableFiles() {
+		return availableFiles;
 	}
 
 	public void retrieve(String file) throws UnknownHostException, IOException {
 		for (int i = 0; i < availableFiles.size(); i++) {
-			if (availableFiles.get(i).fileName == file) {
+
+			if (availableFiles.get(i).fileName.equals(file) && !availableFiles.get(i).hostUserName.equals(userName)) {
+				System.out.println("found");
 				AvailableFile targetFile = availableFiles.get(i);
-				Socket ret = new Socket(targetFile.hostName, targetFile.port);
+				InetAddress ip = InetAddress.getByName("localhost");
+				Socket ret = new Socket(ip, targetFile.port);
 				DataOutputStream out = new DataOutputStream(ret.getOutputStream());
+				DataInputStream din = new DataInputStream(ret.getInputStream());
 				BufferedReader in = new BufferedReader(new InputStreamReader(ret.getInputStream()));
 				String command = "retr: " + file;
 				out.writeUTF(command);
-				String response = in.readLine();
+				String response = din.readUTF();
 				if (!response.equals("505")) {
-
+					System.out.println("here");
 					String str = "";
-					FileWriter fw = new FileWriter("./" + file, true);
+					File newFile = new File("./" + file);
+					FileWriter fw = new FileWriter("./" + file);
 					PrintWriter writer = new PrintWriter(fw);
 					while ((str = in.readLine()) != null) {
 						writer.println(str);
@@ -179,12 +218,14 @@ public class User {
 
 class AvailableFile {
 
+	public String hostUserName;
 	public String hostName;
 	public String fileName;
 	public String speed;
 	public int port;
 
-	public AvailableFile(String hn, int p, String fn, String speed) {
+	public AvailableFile(String hostUserName, String hn, int p, String fn, String speed) {
+		this.hostUserName = hostUserName;
 		this.hostName = hn;
 		this.port = p;
 		this.fileName = fn;

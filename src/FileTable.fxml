@@ -10,11 +10,11 @@
 <?import javafx.scene.text.Font?>
 
 
-<AnchorPane prefHeight="472.0" prefWidth="800.0" style="-fx-background-color: #35a79c;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FileTableController">
+<AnchorPane fx:id="basePane" prefHeight="472.0" prefWidth="800.0" style="-fx-background-color: #35a79c;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="FileTableController">
    <children>
-      <AnchorPane prefHeight="472.0" prefWidth="378.0" style="-fx-background-color: #35a79c;">
+      <AnchorPane prefHeight="472.0" prefWidth="400.0" style="-fx-background-color: #35a79c;">
          <children>
-            <TextField fx:id="searchField" layoutX="14.0" layoutY="58.0" prefHeight="33.0" prefWidth="350.0" style="-fx-border-color: #c5fff9; -fx-background-color: #35a79c; -fx-border-radius: 20; -fx-background-insets: 0;" styleClass="text-input" stylesheets="@style.css">
+            <TextField fx:id="searchField" layoutX="14.0" layoutY="58.0" prefHeight="33.0" prefWidth="374.0" style="-fx-border-color: #c5fff9; -fx-background-color: #35a79c; -fx-border-radius: 20; -fx-background-insets: 0;" styleClass="text-input" stylesheets="@style.css">
                <font>
                   <Font size="14.0" />
                </font>
@@ -24,44 +24,42 @@
                   <Font size="24.0" />
                </font>
             </Label>
-            <TableView fx:id="serverFilesTableView" layoutX="14.0" layoutY="103.0" prefHeight="356.0" prefWidth="350.0">
+            <TableView fx:id="serverFilesTableView" layoutX="14.0" layoutY="103.0" prefHeight="356.0" prefWidth="374.0">
               <columns>
                 <TableColumn fx:id="servFilenameColumn" prefWidth="135.0" text="Filename" />
                 <TableColumn fx:id="servHNColumn" prefWidth="115.0" text="Hostname" />
-                  <TableColumn fx:id="servSpeedColumn" prefWidth="99.0" text="Speed" />
+                  <TableColumn fx:id="servSpeedColumn" prefWidth="122.0" text="Speed" />
               </columns>
-               <columnResizePolicy>
-                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-               </columnResizePolicy>
             </TableView>
          </children>
       </AnchorPane>
-      <AnchorPane layoutX="422.0" prefHeight="472.0" prefWidth="378.0" style="-fx-background-color: #35a79c;">
+      <AnchorPane layoutX="400.0" prefHeight="472.0" prefWidth="400.0" style="-fx-background-color: #35a79c;">
          <children>
-            <Label fx:id="connectToLabel" layoutX="13.0" layoutY="23.0" prefHeight="47.0" prefWidth="353.0" text="Connected to 148.61.112.49 on Port 1234" textFill="#c5fff9">
+            <Label fx:id="connectToLabel" layoutX="14.0" layoutY="25.0" prefHeight="47.0" prefWidth="374.0" text="Connected to 148.61.112.49 on Port 1234" textFill="#c5fff9">
                <font>
                   <Font name="System Bold" size="18.0" />
                </font>
             </Label>
-            <Label fx:id="userLabel" layoutX="14.0" layoutY="54.0" prefHeight="47.0" prefWidth="112.0" text="User: jtkawaski" textFill="#c5fff9">
+            <Label fx:id="userLabel" layoutX="14.0" layoutY="56.0" prefHeight="47.0" prefWidth="112.0" text="User: testname" textFill="#c5fff9">
                <font>
                   <Font size="14.0" />
                </font>
             </Label>
-            <Label fx:id="ipLabel" layoutX="143.0" layoutY="54.0" prefHeight="47.0" prefWidth="112.0" text="IP: 148.61.112.49" textFill="#c5fff9">
+            <Label fx:id="ipLabel" layoutX="140.0" layoutY="56.0" prefHeight="47.0" prefWidth="112.0" text="IP: 148.61.112.49" textFill="#c5fff9">
                <font>
                   <Font size="14.0" />
                </font>
             </Label>
-            <Button fx:id="disconnectBtn" layoutX="265.0" layoutY="65.0" mnemonicParsing="false" prefHeight="23.0" prefWidth="101.0" style="-fx-background-color: #FF2400; -fx-border-radius: 0;" text="Disonnect" textAlignment="CENTER" textFill="#c5fff9" />
-            <TableView fx:id="myFilesTableView" layoutX="15.0" layoutY="103.0" prefHeight="356.0" prefWidth="350.0">
+            <Button fx:id="getBtn" layoutX="276.0" layoutY="10.0" mnemonicParsing="false" onAction="#getFile" prefHeight="20.0" prefWidth="101.0" style="-fx-background-color: #FF2400; -fx-border-radius: 0;" text="Get File" textAlignment="CENTER" textFill="#c5fff9" />
+            <Button fx:id="disconnectBtn" layoutX="276.0" layoutY="67.0" mnemonicParsing="false" onAction="#closeBtnAction" prefHeight="23.0" prefWidth="101.0" style="-fx-background-color: #FF2400; -fx-border-radius: 0;" text="Disconnect" textAlignment="CENTER" textFill="#c5fff9" />    
+            <Button fx:id="searchBtn" layoutX="276.0" layoutY="30.0" mnemonicParsing="false" onAction="#searchServer" prefHeight="23.0" prefWidth="101.0" style="-fx-background-color: #FF2400; -fx-border-radius: 0;" text="Search Server" textAlignment="CENTER" textFill="#c5fff9" />
+            <TableView fx:id="myFilesTableView" layoutX="14.0" layoutY="103.0" prefHeight="356.0" prefWidth="374.0">
                <columns>
                   <TableColumn fx:id="myFilenameColumn" prefWidth="105.0" text="Filename" />
-                  <TableColumn fx:id="mySizeColumn" prefWidth="64.0" text="Size (KB)" />
-                  <TableColumn fx:id="myDescColumn" prefWidth="180.0" text="Description" />
+                  <TableColumn fx:id="myDescColumn" prefWidth="268.0" text="Description" />
                </columns>
             </TableView>
-            <Label fx:id="close" alignment="CENTER" layoutX="356.0" layoutY="-2.0" onMouseClicked="#closeBtnAction" prefHeight="33.0" prefWidth="17.0" text="X" textAlignment="CENTER" textFill="#c5fff9">
+            <Label fx:id="close" alignment="CENTER" layoutX="378.0" layoutY="-2.0" onMouseClicked="#closeBtnAction" prefHeight="33.0" prefWidth="17.0" text="X" textAlignment="CENTER" textFill="#c5fff9">
                <font>
                   <Font name="System Bold" size="14.0" />
                </font>
@@ -69,7 +67,6 @@
          </children>
       </AnchorPane>
       <Button layoutX="418.0" layoutY="-105.0" mnemonicParsing="false" text="Go" />
-      <Button fx:id="goBtn" layoutX="384.0" layoutY="236.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="32.0" style="-fx-background-color: #434ee8; -fx-border-radius: 0;" text="Go" textAlignment="CENTER" textFill="#c5fff9" />
       <AnchorPane fx:id="editDescPane" layoutX="108.0" layoutY="77.0" prefHeight="344.0" prefWidth="584.0" style="-fx-background-color: #009688;" visible="false">
          <children>
             <TextArea fx:id="editDescTextArea" layoutX="14.0" layoutY="51.0" prefHeight="278.0" prefWidth="557.0" />

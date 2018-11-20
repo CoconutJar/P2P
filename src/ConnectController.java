@@ -1,4 +1,3 @@
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -28,7 +27,7 @@ public class ConnectController implements Initializable {
 
 	private double x, y;
 
-	public User user;
+	private User user;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
@@ -36,33 +35,50 @@ public class ConnectController implements Initializable {
 		ObservableList<String> speedOptions = FXCollections.observableArrayList("DSL", "Ethernet", "T1", "T3",
 				"Fiber Optic", "Wireless");
 		speedDropMenu.setItems(speedOptions);
+
+		// Preset Values for testing
+		serverHN.setText("123.45.678.90");
+		serverPort.setText("3158");
+		userName.setText("johndoe");
+		userHN.setText("147.85.236.90");
+		userPort.setText("7894");
+		speedDropMenu.getSelectionModel().selectFirst();
+
 	}
 
 	// Handles closing of window
 	public void closeBtnAction() {
 		Stage stage = (Stage) close.getScene().getWindow();
 		System.out.println("Application closed.");
-		user.quit();
 		stage.close();
+		System.exit(1);
 	}
 
 	// Prints user input to system
 	public void printConnectInput() {
 		System.out.println("Server Hostname: " + serverHN.getText() + "\nServer Port: " + serverPort.getText()
-				+ "\nUsername: " + userName.getText() + "\nUser Hostname: " + userHN.getText() + "\nSpeed: "
-				+ speedDropMenu.getSelectionModel().getSelectedItem());
+				+ "\nUsername: " + userName.getText() + "\nUser Hostname: " + userHN.getText() + "\nUser Port: "
+				+ userPort.getText() + "\nSpeed: " + speedDropMenu.getSelectionModel().getSelectedItem());
 	}
 
 	// Handles "Connect" Button. Submits connection/user information.
 	// Changes window to FileTable window.
 	public void connectBtnPushed(ActionEvent event) throws IOException {
+		printConnectInput();
 		user = new User();
 		user.makeConnection(userName.getText(), serverHN.getText(), serverPort.getText(),
-				(String) speedDropMenu.getSelectionModel().getSelectedItem(), userHN.getText(), "1"); // userPort.getText()
+				(String) speedDropMenu.getSelectionModel().getSelectedItem(), userHN.getText(), userPort.getText());
+
+		FXMLLoader loader = new FXMLLoader();
+		loader.setLocation(getClass().getResource("FileTable.fxml"));
+		Parent fileTableParent = loader.load();
 
 		// Setup for window (stage) change.
-		Parent fileTableParent = FXMLLoader.load(getClass().getResource("FileTable.fxml"));
+//        Parent fileTableParent = FXMLLoader.load(getClass().getResource("FileTable.fxml"));
 		Scene fileTableScene = new Scene(fileTableParent);
+
+		FileTableController controller = loader.getController();
+		controller.initData(user);
 
 		Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
 		window.setScene(fileTableScene);

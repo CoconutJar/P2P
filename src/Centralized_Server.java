@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -79,6 +80,7 @@ class ClientHandler implements Runnable {
 	int port;
 	String speed;
 	BufferedReader dis;
+	DataInputStream is;
 	DataOutputStream dos;
 	boolean loggedIn;
 
@@ -106,15 +108,16 @@ class ClientHandler implements Runnable {
 
 		String connectionString;
 		String fileList;
-
+		String string = "";
 		int listSize;
 
 		try {
 
 			// Sets the first string received as the UserName, hostName and speed for the
 			// client.
-			connectionString = dis.readLine();
-			System.out.println("added");
+			is = new DataInputStream(connectionSocket.getInputStream());
+			connectionString = is.readUTF();
+
 			StringTokenizer tokens = new StringTokenizer(connectionString);
 
 			this.clientName = tokens.nextToken();
@@ -124,31 +127,34 @@ class ClientHandler implements Runnable {
 
 			System.out.println(clientName + " has connected!");
 
-			fileList = dis.readLine();
+			fileList = is.readUTF();
+
+			System.out.println(fileList);
 
 			if (!fileList.equals("505")) {
 				tokens = new StringTokenizer(fileList);
 				String data = tokens.nextToken();
 
-				if (data.equals("200")) {
+				if (data.startsWith("200")) {
 					data = tokens.nextToken();
 					listSize = Integer.parseInt(data);
+					System.out.println(data);
 
 					for (int i = 0; i < listSize; i++) {
 
-						String fileInfo = dis.readLine();
+						String fileInfo = is.readUTF();
+						System.out.println(fileInfo + " " + i);
 						tokens = new StringTokenizer(fileInfo);
-						String fileName = tokens.nextToken("<DIV>");
+						String fileName = tokens.nextToken("$");
 						String fileDescription = tokens.nextToken();
-						ClientData cd = new ClientData(this.hostName, this.port, fileName, fileDescription, this.speed);
+						ClientData cd = new ClientData(this.clientName, this.hostName, this.port, fileName,
+								fileDescription, this.speed);
 						Centralized_Server.clientData.add(cd);
+						System.out.println(cd.fileName);
 
 					}
 				}
 			}
-
-			System.out.println(clientName + " has connected!");
-			System.out.println("Made it!");
 
 		} catch (IOException e1) {
 			e1.printStackTrace();
@@ -163,8 +169,7 @@ class ClientHandler implements Runnable {
 			do {
 
 				// Waits for data.
-				fromClient = dis.readLine();
-				System.out.println(fromClient);
+				fromClient = is.readUTF();
 
 				if (fromClient.equals("QUIT")) {
 
@@ -177,13 +182,14 @@ class ClientHandler implements Runnable {
 					for (int i = 0; i < Centralized_Server.clientData.size(); i++) {
 						if (Centralized_Server.clientData.get(i).fileDescription.contains(fromClient)) {
 							ClientData cd = Centralized_Server.clientData.get(i);
-							String str = cd.speed + " " + cd.hostName + " " + cd.port + " " + cd.fileName;
+							String str = cd.speed + " " + cd.hostName + " " + cd.port + " " + cd.fileName + " "
+									+ cd.hostUserName;
 							dos.writeUTF(str);
+							System.out.println(cd.fileName);
 						}
 					}
 
 					dos.writeUTF("EOF");
-
 				}
 
 			} while (hasNotQuit);
@@ -211,12 +217,14 @@ class ClientHandler implements Runnable {
 class ClientData {
 
 	public String hostName;
+	public String hostUserName;
 	public String fileName;
 	public String fileDescription;
 	public String speed;
 	public int port;
 
-	public ClientData(String hn, int port, String fn, String fd, String sp) {
+	public ClientData(String hostUserName, String hn, int port, String fn, String fd, String sp) {
+		this.hostUserName = hostUserName;
 		this.hostName = hn;
 		this.port = port;
 		this.fileName = fn;
