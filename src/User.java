@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -27,25 +28,25 @@ public class User {
 	private String localHost;
 	private String serverPort;
 	private String connectionSpeed;
-	private int localPort;
+	private static int localPort;
 	private boolean loggedOn;
 
-	public void makeConnection(String userName, String serverHostName, int serverPort, String connectionSpeed,
-			String localHost, int localPort) throws IOException {
+	public void makeConnection(String userName, String serverHostName, String serverPort, String connectionSpeed,
+			String localHost, String localPort) throws IOException {
 
+		InetAddress ip = InetAddress.getByName("localhost");
 		// Connection to server.
-		s = new Socket(serverHostName, serverPort);
+		s = new Socket(ip, Integer.parseInt(serverPort));
 
 		// IP of the server to connect to.
 		this.localHost = localHost;
 		this.userName = userName;
 		this.connectionSpeed = connectionSpeed;
-		this.localPort = localPort;
 
 		// Set up input and output stream to send and receive messages.
 		dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
 		dos = new DataOutputStream(s.getOutputStream());
-		dos.writeUTF(userName + " " + localHost + " " + connectionSpeed + " " + localPort);
+		dos.writeBytes(userName + " " + localHost + " " + connectionSpeed + " " + localPort);
 
 		File fileList = new File("./filelist.xml");
 
@@ -62,7 +63,7 @@ public class User {
 
 					String fileName = node.selectSingleNode("name").getText();
 					String fileDescription = node.selectSingleNode("description").getText();
-					dos.writeUTF(fileName + "<DIV>" + fileDescription);
+					dos.writeBytes(fileName + "<DIV>" + fileDescription);
 
 				}
 			} catch (DocumentException e) {
@@ -80,7 +81,7 @@ public class User {
 			public void run() {
 				while (loggedOn) {
 					try {
-						ServerSocket localServer = new ServerSocket(localPort); // localServerPort
+						ServerSocket localServer = new ServerSocket(User.localPort); // localServerPort
 						Socket client = localServer.accept();
 						DataOutputStream out = new DataOutputStream(client.getOutputStream());
 						BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));

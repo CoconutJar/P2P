@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -19,6 +20,9 @@ public class Centralized_Server {
 
 		try {
 			welcomeSocket = new ServerSocket(3158); // ServerPort
+			System.out.println("Server UP!");
+			InetAddress ip = InetAddress.getByName("localhost");
+			System.out.println(ip);
 		} catch (Exception e) {
 			System.err.println("ERROR: Server could not be started.");
 		}
@@ -28,8 +32,6 @@ public class Centralized_Server {
 
 				// Waits for a client to connect.
 				Socket connectionSocket = welcomeSocket.accept();
-
-				System.out.println(connectionSocket.getRemoteSocketAddress().toString() + " has connected!");
 
 				// Set up input and output stream with the client to send and receive messages.
 				BufferedReader dis = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
@@ -112,12 +114,15 @@ class ClientHandler implements Runnable {
 			// Sets the first string received as the UserName, hostName and speed for the
 			// client.
 			connectionString = dis.readLine();
+			System.out.println("added");
 			StringTokenizer tokens = new StringTokenizer(connectionString);
 
 			this.clientName = tokens.nextToken();
 			this.hostName = tokens.nextToken();
 			this.speed = tokens.nextToken();
 			this.port = Integer.parseInt(tokens.nextToken());
+
+			System.out.println(clientName + " has connected!");
 
 			fileList = dis.readLine();
 
@@ -141,6 +146,9 @@ class ClientHandler implements Runnable {
 					}
 				}
 			}
+
+			System.out.println(clientName + " has connected!");
+			System.out.println("Made it!");
 
 		} catch (IOException e1) {
 			e1.printStackTrace();
