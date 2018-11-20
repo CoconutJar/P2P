@@ -201,12 +201,17 @@ public class FileTableController implements Initializable {
 	public void getFile() {
 		try {
 			System.out.println("Transfer file: Started");
-			user.retrieve(searchField.getText());
-			System.out.println("Transfer file: Finished");
+			if (user.retrieve(searchField.getText())) {
+				System.out.println("Transfer file: Finished");
+				myFilesTableView.getItems().add(new FileObject(searchField.getText(), "Add Description"));
+				myFilesTableView.refresh();
+			}
+			System.out.println("Transfer file: Error");
 		} catch (IOException e) {
 
 			e.printStackTrace();
 		}
+
 	}
 
 	public void disconnectBtnAction() {

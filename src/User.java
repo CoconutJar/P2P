@@ -169,7 +169,8 @@ public class User {
 		return availableFiles;
 	}
 
-	public void retrieve(String file) throws UnknownHostException, IOException {
+	public boolean retrieve(String file) throws UnknownHostException, IOException {
+		boolean downloaded = false;
 		for (int i = 0; i < availableFiles.size(); i++) {
 
 			if (availableFiles.get(i).fileName.equals(file) && !availableFiles.get(i).hostUserName.equals(userName)) {
@@ -193,6 +194,7 @@ public class User {
 						writer.println(str);
 					}
 					writer.close();
+					downloaded = true;
 
 				} else {
 					System.out.println("File Not Found!");
@@ -202,6 +204,7 @@ public class User {
 				ret.close();
 			}
 		}
+		return downloaded;
 	}
 
 	public void quit() {

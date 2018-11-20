@@ -108,7 +108,7 @@ class ClientHandler implements Runnable {
 
 		String connectionString;
 		String fileList;
-		String string = "";
+		// String string = "";
 		int listSize;
 
 		try {
