@@ -156,14 +156,8 @@ public class FileTableController implements Initializable {
 	// INTENDED -> Fill ObservableList with FileObjects gathered from "filelist.xml"
 	// received from server
 	private ObservableList<FileObject> getServerFiles() {
-		// user.search();
+
 		ObservableList<FileObject> files = FXCollections.observableArrayList();
-		// files.add(new FileObject("testfile1.txt", "168.61.111.49", "T1", "Cool
-		// stuff"));
-		// files.add(new FileObject("testfile2.pdf", "148.61.415.49", "Ethernet", "Sweet
-		// stuff"));
-		// files.add(new FileObject("testfile1.docx", "152.61.112.49", "Fiber Optic",
-		// "Awesome stuff"));
 
 		return files;
 	}
@@ -198,6 +192,9 @@ public class FileTableController implements Initializable {
 		ipLabel.setText("IP: " + userHN);
 	}
 
+	// Called when a user clicks the GetFile button. Grabs the text from the search
+	// bar and looks for filesnames that match.
+	// If a file is downloaded add it to the localfiles view.
 	public void getFile() {
 		try {
 			System.out.println("Transfer file: Started");
@@ -205,8 +202,10 @@ public class FileTableController implements Initializable {
 				System.out.println("Transfer file: Finished");
 				myFilesTableView.getItems().add(new FileObject(searchField.getText(), "Add Description"));
 				myFilesTableView.refresh();
-			}
-			System.out.println("Transfer file: Error");
+			} else
+
+				// If the file wasnt downloaded an error occured.
+				System.out.println("Transfer file: Error");
 		} catch (IOException e) {
 
 			e.printStackTrace();
@@ -218,6 +217,9 @@ public class FileTableController implements Initializable {
 		System.out.println("Disconnect");
 	}
 
+	// Called when a user clicks the searchServer button. Grabs the text from the
+	// search bar on the GUI to search file description for matches.
+	// The results from the search are uploaded to the serverFilesTableView.
 	public void searchServer() {
 		ObservableList<FileObject> files = FXCollections.observableArrayList();
 
