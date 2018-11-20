@@ -33,6 +33,15 @@ public class ConnectController implements Initializable{
         // Fill options for Speed Dropdown Menu
         ObservableList<String> speedOptions = FXCollections.observableArrayList("DSL", "Ethernet", "T1", "T3", "Fiber Optic", "Wireless");
         speedDropMenu.setItems(speedOptions);
+
+        // Preset Values for testing
+        serverHN.setText("123.45.678.90");
+        serverPort.setText("1245");
+        userName.setText("johndoe");
+        userHN.setText("147.85.236.90");
+        userPort.setText("7894");
+        speedDropMenu.getSelectionModel().selectFirst();
+
     }
 
     // Handles closing of window
@@ -57,9 +66,16 @@ public class ConnectController implements Initializable{
     public void connectBtnPushed(ActionEvent event) throws IOException {
         printConnectInput();
 
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("FileTable.fxml"));
+        Parent fileTableParent = loader.load();
+
         // Setup for window (stage) change.
-        Parent fileTableParent = FXMLLoader.load(getClass().getResource("FileTable.fxml"));
+//        Parent fileTableParent = FXMLLoader.load(getClass().getResource("FileTable.fxml"));
         Scene fileTableScene = new Scene(fileTableParent);
+
+        FileTableController controller = loader.getController();
+        controller.initData(serverHN.getText(), serverPort.getText(), userName.getText(), userHN.getText(), userPort.getText(), speedDropMenu.getSelectionModel().getSelectedItem().toString());
 
         Stage window = (Stage)((Node)event.getSource()).getScene().getWindow();
         window.setScene(fileTableScene);

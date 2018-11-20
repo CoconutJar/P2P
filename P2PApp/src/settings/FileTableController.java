@@ -1,5 +1,6 @@
 package settings;
 
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -19,11 +20,13 @@ import java.io.File;
 
 
 public class FileTableController implements Initializable{
+    // From ConnectController
+    @FXML private String serverHN, serverPort, userName, userHN, userPort, userSpeed;
+
     // MyFiles Table (Local files)
     @FXML private TableView<FileObject> myFilesTableView;
     @FXML private TableColumn<FileObject, String> myFilenameColumn;
     @FXML private TableColumn<FileObject, String> myDescColumn;
-    @FXML private TableColumn<FileObject, Integer> mySizeColumn;
 
     // Server Files Table
     @FXML private TableView<FileObject> serverFilesTableView;
@@ -37,7 +40,7 @@ public class FileTableController implements Initializable{
     @FXML private Label connectToLabel;
     @FXML private Label userLabel;
     @FXML private Label ipLabel;
-    @FXML private Button goBtn;
+    @FXML private Button disconnectBtn;
 
     // Description Editor attributes
     @FXML private AnchorPane editDescPane;
@@ -46,11 +49,23 @@ public class FileTableController implements Initializable{
     @FXML private TextArea editDescTextArea;
 
 
+    // Data received from ConnectController
+    public void initData(String serverHN, String serverPort, String userName, String userHN, String userPort, String userSpeed){
+        this.serverHN = serverHN;
+        this.serverPort = serverPort;
+        this.userName = userName;
+        this.userHN = userHN;
+        this.userPort = userPort;
+        this.userSpeed = userSpeed;
+
+        // Set connection session attributes banner
+        sessionAttributes();
+    }
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Set up MyFile Table columns
         myFilenameColumn.setCellValueFactory(new PropertyValueFactory<FileObject, String>("filename"));
-        mySizeColumn.setCellValueFactory(new PropertyValueFactory<FileObject, Integer>("size"));
         myDescColumn.setCellValueFactory(new PropertyValueFactory<FileObject, String>("description"));
 
         // Set up Server Files Table columns
@@ -87,18 +102,29 @@ public class FileTableController implements Initializable{
         ContextMenu menu = new ContextMenu();
         menu.getItems().add(mi1);
         myFilesTableView.setContextMenu(menu);
+
+        MenuItem mi12 = new MenuItem("Get File");
+        mi12.setOnAction((ActionEvent event) -> {
+            FileObject item = serverFilesTableView.getSelectionModel().getSelectedItem();
+            System.out.println("Selected item: " + item.getFilename());
+            transferFile(item);
+        });
+        ContextMenu menu2 = new ContextMenu();
+        menu2.getItems().add(mi12);
+        serverFilesTableView.setContextMenu(menu2);
     }
 
     // Returns ObservableList of all FileObject objects in MyFiles folder
-    public ObservableList<FileObject> getMyFiles(){
+    private ObservableList<FileObject> getMyFiles(){
         ObservableList<FileObject> files = FXCollections.observableArrayList();
 
         File folder = new File("./MyFiles");
         File[] listOfFiles = folder.listFiles();
 
+        assert listOfFiles != null;
         for (File file : listOfFiles) {
             if (file.isFile()) {
-                files.add(new FileObject(file.getName(), ((int) file.length()/1000 + 1), "Add Description"));
+                files.add(new FileObject(file.getName(), "Add Description"));
             }
         }
 
@@ -108,7 +134,7 @@ public class FileTableController implements Initializable{
     // Returns ObservableList of all FileObject objects used to fill Server File Table
     // CURRENTLY -> Fills ObservableList with hardcoded dummy data
     // INTENDED  -> Fill ObservableList with FileObjects gathered from "filelist.xml" received from server
-    public ObservableList<FileObject> getServerFiles(){
+    private ObservableList<FileObject> getServerFiles(){
         ObservableList<FileObject> files = FXCollections.observableArrayList();
         files.add(new FileObject("testfile1.txt", "168.61.111.49", "T1", "Cool stuff"));
         files.add(new FileObject("testfile2.pdf", "148.61.415.49", "Ethernet", "Sweet stuff"));
@@ -134,6 +160,21 @@ public class FileTableController implements Initializable{
             System.out.println("Close Edit");
         });
 
+    }
+
+
+    private void transferFile(FileObject item){
+        System.out.println("Transfer file: " + item.getFilename());
+    }
+
+    private void sessionAttributes(){
+        connectToLabel.setText("Connected to " + serverHN + " on " + serverPort);
+        userLabel.setText("User: " + userName);
+        ipLabel.setText("IP: " + userHN);
+    }
+
+    public void disconnectBtnAction(){
+        System.out.println("Disconnect");
     }
 
     // Handles closing of window
