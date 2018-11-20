@@ -23,7 +23,7 @@ import java.util.ResourceBundle;
 // Controller for Server Connection / User Information window
 public class ConnectController implements Initializable{
     @FXML private Label close;
-    @FXML private TextField serverHN, serverPort, userHN, userName;
+    @FXML private TextField serverHN, serverPort, userHN, userName, userPort;
     @FXML private ChoiceBox speedDropMenu;
 
     private double x, y;
@@ -48,6 +48,7 @@ public class ConnectController implements Initializable{
                             "\nServer Port: " + serverPort.getText() +
                             "\nUsername: " + userName.getText() +
                             "\nUser Hostname: " + userHN.getText() +
+                            "\nUser Port: " + userPort.getText() +
                             "\nSpeed: " + speedDropMenu.getSelectionModel().getSelectedItem());
     }
 
