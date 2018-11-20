@@ -28,6 +28,7 @@ public class User {
 	private String serverPort;
 	private String connectionSpeed;
 	private int localPort;
+	private boolean loggedOn;
 
 	public void makeConnection(String userName, String serverHostName, int serverPort, String connectionSpeed,
 			String localHost, int localPort) throws IOException {
@@ -73,26 +74,33 @@ public class User {
 			System.out.println("You need a XML file with your fileList!");
 		}
 
+		loggedOn = true;
+
 		Thread localServer = new Thread(new Runnable() {
 			public void run() {
-				try {
-					ServerSocket localServer = new ServerSocket(localPort); // localServerPort
-					Socket client = localServer.accept();
-					DataOutputStream out = new DataOutputStream(client.getOutputStream());
-					BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-					String targetFile = in.readLine();
-					BufferedReader contentRead = new BufferedReader(new FileReader(targetFile));
+				while (loggedOn) {
+					try {
+						ServerSocket localServer = new ServerSocket(localPort); // localServerPort
+						Socket client = localServer.accept();
+						DataOutputStream out = new DataOutputStream(client.getOutputStream());
+						BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+						String targetFile = in.readLine();
+						BufferedReader contentRead = new BufferedReader(new FileReader(targetFile));
 
-					PrintWriter pwrite = new PrintWriter(out, true);
+						PrintWriter pwrite = new PrintWriter(out, true);
 
-					String str;
-					while ((str = contentRead.readLine()) != null) {
-						pwrite.println(str);
+						String str;
+						while ((str = contentRead.readLine()) != null) {
+							pwrite.println(str);
+						}
+						contentRead.close();
+						client.close();
+						localServer.close();
+
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
-
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 			}
 		});
@@ -164,6 +172,7 @@ public class User {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		loggedOn = false;
 	}
 }
 
