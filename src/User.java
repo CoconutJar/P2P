@@ -1,10 +1,14 @@
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -15,27 +19,32 @@ import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
 
 public class User {
-	static Socket s;
-	static boolean loggedIn;
-	static DataOutputStream dos;
-	static BufferedReader dis;
-	static ArrayList<AvailableFile> availableFiles;
+	private Socket s;
+	private DataOutputStream dos;
+	private BufferedReader dis;
+	private ArrayList<AvailableFile> availableFiles;
+	private String userName;
+	private String localHost;
+	private String serverPort;
+	private String connectionSpeed;
+	private int localPort;
 
-	public static void main(String[] args) throws IOException {
-		// IP of the server to connect to.
-		InetAddress ip = InetAddress.getByName("localhost");
+	public void makeConnection(String userName, String serverHostName, int serverPort, String connectionSpeed,
+			String localHost, int localPort) throws IOException {
 
 		// Connection to server.
-		s = new Socket(ip, 3158);
+		s = new Socket(serverHostName, serverPort);
 
-		String username = "bob";
-		String connectionSpeed = "5";
-		int port = 1234;
+		// IP of the server to connect to.
+		this.localHost = localHost;
+		this.userName = userName;
+		this.connectionSpeed = connectionSpeed;
+		this.localPort = localPort;
 
 		// Set up input and output stream to send and receive messages.
 		dis = new BufferedReader(new InputStreamReader(s.getInputStream()));
 		dos = new DataOutputStream(s.getOutputStream());
-		dos.writeUTF(username + " " + ip + " " + connectionSpeed + " " + port);
+		dos.writeUTF(userName + " " + localHost + " " + connectionSpeed + " " + localPort);
 
 		File fileList = new File("./filelist.xml");
 
@@ -56,7 +65,6 @@ public class User {
 
 				}
 			} catch (DocumentException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
@@ -65,52 +73,96 @@ public class User {
 			System.out.println("You need a XML file with your fileList!");
 		}
 
-		loggedIn = true;
+		Thread localServer = new Thread(new Runnable() {
+			public void run() {
+				try {
+					ServerSocket localServer = new ServerSocket(localPort); // localServerPort
+					Socket client = localServer.accept();
+					DataOutputStream out = new DataOutputStream(client.getOutputStream());
+					BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+					String targetFile = in.readLine();
+					BufferedReader contentRead = new BufferedReader(new FileReader(targetFile));
+
+					PrintWriter pwrite = new PrintWriter(out, true);
+
+					String str;
+					while ((str = contentRead.readLine()) != null) {
+						pwrite.println(str);
+					}
+
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
+		localServer.start();
+	}
+
+	public void search(String keyword) {
 		StringTokenizer tokens;
 
-		do {
+		try {
 
-			String command = "";
+			dos.writeUTF(keyword);
+			String str = "";
+			str = dis.readLine();
+			while (!str.equals("EOF")) {
 
-			if (command.startsWith("S:")) {
-
-				String search = "";
-				dos.writeUTF(search);
-				String str = "";
+				tokens = new StringTokenizer(str);
+				String hostSpeed = tokens.nextToken();
+				String hostName = tokens.nextToken();
+				int hostPort = Integer.parseInt(tokens.nextToken());
+				String hostFileName = tokens.nextToken();
+				AvailableFile file = new AvailableFile(hostName, hostPort, hostFileName, hostSpeed);
+				availableFiles.add(file);
 				str = dis.readLine();
-				while (!str.equals("EOF")) {
 
-					tokens = new StringTokenizer(str);
-					String hostSpeed = tokens.nextToken();
-					String hostName = tokens.nextToken();
-					int hostPort = Integer.parseInt(tokens.nextToken());
-					String hostFileName = tokens.nextToken();
-					AvailableFile file = new AvailableFile(hostName, hostPort, hostFileName, hostSpeed);
-					availableFiles.add(file);
-					str = dis.readLine();
-
-				}
-			} else if (command.startsWith("R: ")) {
-				tokens = new StringTokenizer(command);
-				String file = tokens.nextToken();
-				retrieve(file);
-
-			} else if (command.equals("QUIT")) {
-				dos.writeUTF(command);
-				loggedIn = false;
 			}
-
-		} while (loggedIn);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 	}
 
-	public static void retrieve(String file) {
+	public void retrieve(String file) throws UnknownHostException, IOException {
 		for (int i = 0; i < availableFiles.size(); i++) {
 			if (availableFiles.get(i).fileName == file) {
+				AvailableFile targetFile = availableFiles.get(i);
+				Socket ret = new Socket(targetFile.hostName, targetFile.port);
+				DataOutputStream out = new DataOutputStream(ret.getOutputStream());
+				BufferedReader in = new BufferedReader(new InputStreamReader(ret.getInputStream()));
+				String command = "retr: " + file;
+				out.writeUTF(command);
+				String response = in.readLine();
+				if (!response.equals("505")) {
 
-				// Download File
+					String str = "";
+					FileWriter fw = new FileWriter("./" + file, true);
+					PrintWriter writer = new PrintWriter(fw);
+					while ((str = in.readLine()) != null) {
+						writer.println(str);
+					}
+					writer.close();
 
+				} else {
+					System.out.println("File Not Found!");
+				}
+
+				in.close();
+				ret.close();
 			}
+		}
+	}
+
+	public void quit() {
+
+		try {
+			dos.writeUTF("QUIT");
+			s.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 }
